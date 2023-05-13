@@ -1,0 +1,12 @@
+{
+    "portion_hidden_edges": 0.1,
+    "ratio_negative": 5,
+    "negative_sampling": true,
+    "radius": 250,
+    "random_size": 50,
+    "neighbor_inp": 50,
+    "ratio_test_size": 0.2,
+    "batch_size": 16,
+    "dataset": "./datasets",
+    "number_samples":1000
+}
