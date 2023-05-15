@@ -7,6 +7,6 @@
     "neighbor_inp": 50,
     "ratio_test_size": 0.2,
     "batch_size": 16,
-    "dataset": "./datasets",
+    "dataset": "../DataUtils/datasets",
     "number_samples":1000
 }
