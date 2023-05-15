@@ -1,0 +1,10 @@
+{
+    "gcn_input_size": 500,
+    "gcn_hidden_size": 300,
+    "gcn_output_size": 200,
+    "feature_inp": [3,5,6,7,8,9,10,11,12,13,14],
+    "batch_size": 16,
+    "num_epochs": 5,
+    "sample_size": 100,
+    "backward_lim": 10
+}
