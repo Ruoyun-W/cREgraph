@@ -7,17 +7,29 @@ from torch_geometric.data import Data
 import os
 import random
 from tqdm import tqdm
+import numpy as np
+from matplotlib.colors import ListedColormap
+import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
+
 
 FEATURE_LIST = [3,5,6,7,8,9,10,11,12,13,14]
 
 def generate_datasets(cre_attributes, cre_dna, cre_edge_matrix,cre_edge_pairs):
     cre_number_of_nodes = cre_attributes.size()[0]
-    cre_number_of_edges = len(cre_edge_pairs)
+    cre_number_of_edges = len(cre_edge_pairs[0])
     config_file = open('../DataUtils/config.json')
     config_json = json.load(config_file)
 
+
     if(config_json["negative_sampling"]):
-        cre_edge_matrix = add_negative_samples(cre_number_of_nodes, cre_edge_matrix,config_json["portion_hidden_edges"], cre_number_of_edges)
+        # print("in add negative samples")
+        # print("cre_number_of_nodes ",cre_number_of_nodes)
+        # print("cre_number_of_edges ",cre_number_of_edges)
+
+        cre_edge_matrix = add_negative_samples(cre_number_of_nodes,cre_edge_pairs, cre_edge_matrix,config_json["portion_hidden_edges"],config_json["ratio_negative"], cre_number_of_edges)
+       # return cre_edge_matrix_inp
+
    
     
     dataset_subgraphs = generate_subgraphs( cre_edge_matrix, cre_attributes, cre_dna,cre_number_of_nodes, config_json["radius"], config_json["random_size"],
@@ -30,29 +42,36 @@ def generate_datasets(cre_attributes, cre_dna, cre_edge_matrix,cre_edge_pairs):
     
     dataset_train, dataset_test = train_test_split(dataset_subgraphs , test_size = config_json["ratio_test_size"], random_state = 42)
     dataset_train, dataset_val = train_test_split(dataset_train, test_size = config_json["ratio_test_size"], random_state = 42)
-    dataset_train_selected_att = [Data(x = torch.index_select(data.x, 1, all_features_index), edge_index = data.edge_index, y = data.y) for data in  dataset_train]
-    dataset_test_selected_att = [Data(x = torch.index_select(data.x, 1, all_features_index), edge_index = data.edge_index, y = data.y) for data in  dataset_test]
-    dataset_val_selected_att = [Data(x = torch.index_select(data.x, 1, all_features_index), edge_index = data.edge_index, y = data.y) for data in  dataset_val]
+    # dataset_train_selected_att = [Data(x = torch.index_select(data.x, 1, all_features_index), edge_index = data.edge_index, y = data.y) for data in  dataset_train]
+    # dataset_test_selected_att = [Data(x = torch.index_select(data.x, 1, all_features_index), edge_index = data.edge_index, y = data.y) for data in  dataset_test]
+    # dataset_val_selected_att = [Data(x = torch.index_select(data.x, 1, all_features_index), edge_index = data.edge_index, y = data.y) for data in  dataset_val]
     
-    train_loader = DataLoader(dataset_train_selected_att, batch_size = config_json["batch_size"], shuffle=True)
-    test_loader = DataLoader(dataset_test_selected_att, batch_size = config_json["batch_size"], shuffle=True)
-    val_loader = DataLoader(dataset_val_selected_att, batch_size = config_json["batch_size"], shuffle=True)
+    # train_loader = DataLoader(dataset_train_selected_att, batch_size = config_json["batch_size"], shuffle=True)
+    # test_loader = DataLoader(dataset_test_selected_att, batch_size = config_json["batch_size"], shuffle=True)
+    # val_loader = DataLoader(dataset_val_selected_att, batch_size = config_json["batch_size"], shuffle=True)
 
     if not os.path.exists(config_json["dataset"]):
         os.makedirs(config_json["dataset"])
 
-    torch.save(train_loader, os.path.join(config_json["dataset"],'train_loader.pth'))
-    torch.save(test_loader, os.path.join(config_json["dataset"],'test_loader.pth'))
-    torch.save(val_loader, os.path.join(config_json["dataset"],'val_loader.pth'))
+    torch.save(dataset_train, os.path.join(config_json["dataset"],'train_loader.pth'))
+    torch.save(dataset_test, os.path.join(config_json["dataset"],'test_loader.pth'))
+    #torch.save(val_loader, os.path.join(config_json["dataset"],'val_loader.pth'))
+    
 
 
 
 
 
-def add_negative_samples(cre_number_of_nodes, cre_edge_matrix,portion_negative_to_positive, cre_number_of_edges): 
+def add_negative_samples(cre_number_of_nodes, cre_edge_pairs,cre_edge_matrix,portion_hidden_edges, portion_negative_to_positive, cre_number_of_edges): 
   
    
     cre_edge_matrix_input =  torch.clone(cre_edge_matrix)
+    print("portion_hidden_edges ",portion_hidden_edges)
+    print("portion_negative_to_positive ",portion_negative_to_positive)
+
+    cre_hidden_input = random.sample(list(range( cre_number_of_edges)) , k = (int(cre_number_of_edges * portion_hidden_edges)))
+    for i in cre_hidden_input:
+        cre_edge_matrix_input[cre_edge_pairs[0][i]][cre_edge_pairs[1][i]] = -1
 
     number_negative_samples = cre_number_of_edges * portion_negative_to_positive
     count_negative = 0
@@ -73,6 +92,18 @@ def add_negative_samples(cre_number_of_nodes, cre_edge_matrix,portion_negative_t
             count_negative += 1
             have_already_sampled[node1][node2] = 1
             have_already_sampled[node2][node1] = 1
+    
+    values_mat = np.unique(cre_edge_matrix_input.ravel())
+    color_dict = {-1: 'lightblue',
+              0: 'darkslateblue',
+              1: 'yellow'}
+    colors=[color_dict[val] for val in list(values_mat)]
+    im = plt.imshow(cre_edge_matrix_input,interpolation="none",cmap=ListedColormap(colors))
+  
+    colors = [ im.cmap(im.norm(value)) for value in values_mat]
+    patches = [ mpatches.Patch(color=colors[i], label="Level {l}".format(l=values_mat[i]) ) for i in range(len(values_mat)) ]
+    plt.legend(handles=patches, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0. )
+    plt.show()
 
     return cre_edge_matrix_input
 
@@ -99,7 +130,9 @@ def generate_random_subgraph( cre_edge_matrix_input, cre_attributes, cre_DNA, cr
     attribute_dataset = []
 
     node_part1 = random.sample((range(sample_size)), k = sample_size // 2)
-    node_part2 = list(set((range(sample_size))) - set(node_part1))    
+    node_part2 = list(set((range(sample_size))) - set(node_part1))   
+    
+     
 
     for node1 in node_part1:
         for node2 in node_part2: 
@@ -125,6 +158,8 @@ def generate_subgraphs( cre_edge_matrix_input,cre_attributes, cre_DNA,cre_number
 
   for i in tqdm(range(number_samples)):
     new_subgraph_dataset = generate_random_subgraph(cre_edge_matrix_input, cre_attributes, cre_DNA,cre_number_of_nodes ,radius_inp, rand_inp, neighbor_inp)
+   # print("new_subgraoh ", new_subgraph_dataset.y.sum())
+    #print("new_subgraoh ", len(new_subgraph_dataset.y))
     dataset_subgraphs.append(new_subgraph_dataset)
   
 #   
