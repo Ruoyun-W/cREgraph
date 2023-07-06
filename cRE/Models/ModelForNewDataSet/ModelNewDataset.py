@@ -22,8 +22,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score
 
 class gnn_network(torch.nn.Module):
+    
 
     def __init__(self, index_size, gcn_input_size, gcn_hidden_size, gcn_output_size, batch_size, sample_size):
+
 
         super(gnn_network, self).__init__()
 
@@ -36,7 +38,7 @@ class gnn_network(torch.nn.Module):
         self.bilinear = nn.Bilinear(gcn_output_size, gcn_output_size, 1)
 
         self.transform1 = nn.Linear(index_size, gcn_input_size)
-        self.transform2 = nn.Linear(768, gcn_input_size)
+        self.transform2 = nn.Linear(767, gcn_input_size)
 
         self.gcn_output_size = gcn_output_size
 
@@ -68,7 +70,6 @@ class gnn_network(torch.nn.Module):
 
 def train_gnn_model(dataset_train, dataset_test, config_path):
   
-
   config_file = open(config_path)
   config_json = json.load(config_file)
 
@@ -78,7 +79,8 @@ def train_gnn_model(dataset_train, dataset_test, config_path):
                         config_json["batch_size"], config_json["sample_size"])
   criterion = torch.nn.CrossEntropyLoss(ignore_index =-1)
   optimizer = torch.optim.Adam(model.parameters(), lr = 1e-4)
-  all_features_index = torch.cat([feature, torch.Tensor(list(range(11,779))).long()],dim=0)
+  all_features_index = torch.Tensor(list(range(0, 778))).long()
+
   dataset_test_selected_att = [Data(x = torch.index_select(d.x, 1, all_features_index), edge_index=d.edge_index, y=d.y) for d in dataset_test]
   dataset_train_selected_att = [Data(x = torch.index_select(data.x, 1, all_features_index), edge_index = data.edge_index, y = data.y) for data in dataset_train]
 
@@ -129,7 +131,7 @@ def test_model(model_cRE_edge_predictior, dataset_test, config_path):
   config_json = json.load(config_file)
 
   feature = torch.tensor(config_json["feature_inp"])
-  all_features_index = torch.cat([feature, torch.Tensor(list(range(11,779))).long()],dim=0)
+  all_features_index = torch.Tensor(list(range(0, 778))).long()
   dataset_test_selected_att = [Data(x = torch.index_select(d.x, 1, all_features_index), edge_index=d.edge_index, y=d.y) for d in dataset_test]
   loader = DataLoader(dataset_test_selected_att, batch_size = config_json["batch_size"], shuffle=True)
 
@@ -145,19 +147,19 @@ def test_model(model_cRE_edge_predictior, dataset_test, config_path):
       y_true += data.y.tolist()
       y_pred += i
       cnt += 1
-      if(cnt <= 2):
-        print("cnt is: ", cnt)
-        mat_y = np.reshape(data.y[0:10000], (100, 100))
-        mat_pred_y = np.reshape(y_pred[0:10000], (100, 100))
-        mat_y = mat_y.numpy()
-        print(mat_y)
-        print(mat_pred_y)
-        print(np.sum(mat_y, 1))
-        print(np.sum(mat_pred_y, 1))
-        plt.imshow(mat_y, cmap='bwr')
-        plt.show()
-        plt.imshow(mat_pred_y, cmap='bwr')
-        plt.show()
+      # if(cnt <= 2):
+      #   print("cnt is: ", cnt)
+      #   mat_y = np.reshape(data.y[0:10000], (100, 100))
+      #   mat_pred_y = np.reshape(y_pred[0:10000], (100, 100))
+      #   mat_y = mat_y.numpy()
+      #   print(mat_y)
+      #   print(mat_pred_y)
+      #   print(np.sum(mat_y, 1))
+      #   print(np.sum(mat_pred_y, 1))
+      #   plt.imshow(mat_y, cmap='bwr')
+      #   plt.show()
+      #   plt.imshow(mat_pred_y, cmap='bwr')
+      #   plt.show()
 
   y_pred_samples = [y_pred[i] for i in range(len(y_pred)) if y_true[i] != -1] 
   y_true_samples = [var for var in y_true if var != -1] 
