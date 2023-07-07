@@ -15,10 +15,10 @@ import matplotlib.pyplot as plt
 
 FEATURE_LIST = [3,5,6,7,8,9,10,11,12,13,14]
 
-def generate_datasets(cre_attributes, cre_dna, cre_edge_matrix,cre_edge_pairs):
+def generate_datasets(cre_attributes, cre_dna, cre_edge_matrix,cre_edge_pairs,config_path):
     cre_number_of_nodes = cre_attributes.size()[0]
     cre_number_of_edges = len(cre_edge_pairs[0])
-    config_file = open('../DataUtils/config.json')
+    config_file = open(config_path)
     config_json = json.load(config_file)
 
 
