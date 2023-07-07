@@ -95,12 +95,6 @@ def train_gnn_model(dataset_train, dataset_test, config_path):
                         config_json["batch_size"], config_json["sample_size"])
   criterion = torch.nn.CrossEntropyLoss(ignore_index =-1)
   optimizer = torch.optim.Adam(model.parameters(), lr = 1e-4)
-  all_features_index = torch.cat([feature, torch.Tensor(list(range(11,779))).long()],dim=0)
-  dataset_test_selected_att = [Data(x = torch.index_select(d.x, 1, all_features_index), edge_index=d.edge_index, y=d.y) for d in dataset_test]
-  dataset_train_selected_att = [Data(x = torch.index_select(data.x, 1, all_features_index), edge_index = data.edge_index, y = data.y) for data in dataset_train]
-
-  loader = DataLoader(dataset_train_selected_att, batch_size =  config_json["batch_size"], shuffle=True)
-  loader_test = DataLoader(dataset_test_selected_att, batch_size =  config_json["batch_size"], shuffle=True)
 
 
   losses_train = []
@@ -109,10 +103,12 @@ def train_gnn_model(dataset_train, dataset_test, config_path):
     count = 0
     loss = 0
     flag = True
-    for data in loader:
+    for data in dataset_train:
         pred_y = model(data)
         loss = loss + criterion(pred_y, data.y)
         count = count + 1
+     
+
         if(count == config_json["backward_lim"]):
             loss.backward()
             optimizer.step()
@@ -124,7 +120,7 @@ def train_gnn_model(dataset_train, dataset_test, config_path):
             loss = 0
             count = 0
     loss_test = 0
-    for data in loader_test:
+    for data in dataset_test:
       pred_y = model(data)
       loss_test = loss_test + criterion(pred_y, data.y)
     losses_test.append(loss_test.item())
@@ -145,18 +141,13 @@ def test_model(model_cRE_edge_predictior, dataset_test, config_path):
   config_file = open(config_path)
   config_json = json.load(config_file)
 
-  feature = torch.tensor(config_json["feature_inp"])
-  all_features_index = torch.cat([feature, torch.Tensor(list(range(11,779))).long()],dim=0)
-  dataset_test_selected_att = [Data(x = torch.index_select(d.x, 1, all_features_index), edge_index=d.edge_index, y=d.y) for d in dataset_test]
-  loader = DataLoader(dataset_test_selected_att, batch_size = config_json["batch_size"], shuffle=True)
-
   y_true = []
   y_pred = []
 
   cnt = 0
 
   with torch.no_grad():    
-    for data in loader:
+    for data in dataset_test:
       pred_y = model_cRE_edge_predictior(data)
       v, i = torch.max(pred_y, dim = 1)
       y_true += data.y.tolist()

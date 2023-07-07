@@ -23,14 +23,8 @@ def generate_datasets(cre_attributes, cre_dna, cre_edge_matrix,cre_edge_pairs):
 
 
     if(config_json["negative_sampling"]):
-        # print("in add negative samples")
-        # print("cre_number_of_nodes ",cre_number_of_nodes)
-        # print("cre_number_of_edges ",cre_number_of_edges)
-
         cre_edge_matrix = add_negative_samples(cre_number_of_nodes,cre_edge_pairs, cre_edge_matrix,config_json["portion_hidden_edges"],config_json["ratio_negative"], cre_number_of_edges)
-       # return cre_edge_matrix_inp
-
-   
+ 
     
     dataset_subgraphs = generate_subgraphs( cre_edge_matrix, cre_attributes, cre_dna,cre_number_of_nodes, config_json["radius"], config_json["random_size"],
                             config_json["neighbor_inp"],config_json["number_samples"])
@@ -42,20 +36,20 @@ def generate_datasets(cre_attributes, cre_dna, cre_edge_matrix,cre_edge_pairs):
     
     dataset_train, dataset_test = train_test_split(dataset_subgraphs , test_size = config_json["ratio_test_size"], random_state = 42)
     dataset_train, dataset_val = train_test_split(dataset_train, test_size = config_json["ratio_test_size"], random_state = 42)
-    # dataset_train_selected_att = [Data(x = torch.index_select(data.x, 1, all_features_index), edge_index = data.edge_index, y = data.y) for data in  dataset_train]
-    # dataset_test_selected_att = [Data(x = torch.index_select(data.x, 1, all_features_index), edge_index = data.edge_index, y = data.y) for data in  dataset_test]
-    # dataset_val_selected_att = [Data(x = torch.index_select(data.x, 1, all_features_index), edge_index = data.edge_index, y = data.y) for data in  dataset_val]
+    dataset_train_selected_att = [Data(x = torch.index_select(data.x, 1, all_features_index), edge_index = data.edge_index, y = data.y) for data in  dataset_train]
+    dataset_test_selected_att = [Data(x = torch.index_select(data.x, 1, all_features_index), edge_index = data.edge_index, y = data.y) for data in  dataset_test]
+    dataset_val_selected_att = [Data(x = torch.index_select(data.x, 1, all_features_index), edge_index = data.edge_index, y = data.y) for data in  dataset_val]
     
-    # train_loader = DataLoader(dataset_train_selected_att, batch_size = config_json["batch_size"], shuffle=True)
-    # test_loader = DataLoader(dataset_test_selected_att, batch_size = config_json["batch_size"], shuffle=True)
-    # val_loader = DataLoader(dataset_val_selected_att, batch_size = config_json["batch_size"], shuffle=True)
+    train_loader = DataLoader(dataset_train_selected_att, batch_size = config_json["batch_size"], shuffle=True)
+    test_loader = DataLoader(dataset_test_selected_att, batch_size = config_json["batch_size"], shuffle=True)
+    val_loader = DataLoader(dataset_val_selected_att, batch_size = config_json["batch_size"], shuffle=True)
 
     if not os.path.exists(config_json["dataset"]):
         os.makedirs(config_json["dataset"])
 
-    torch.save(dataset_train, os.path.join(config_json["dataset"],'train_loader.pth'))
-    torch.save(dataset_test, os.path.join(config_json["dataset"],'test_loader.pth'))
-    #torch.save(val_loader, os.path.join(config_json["dataset"],'val_loader.pth'))
+    torch.save(train_loader, os.path.join(config_json["dataset"],'train_loader.pth'))
+    torch.save(test_loader, os.path.join(config_json["dataset"],'test_loader.pth'))
+    torch.save(val_loader, os.path.join(config_json["dataset"],'val_loader.pth'))
     
 
 
@@ -93,18 +87,6 @@ def add_negative_samples(cre_number_of_nodes, cre_edge_pairs,cre_edge_matrix,por
             have_already_sampled[node1][node2] = 1
             have_already_sampled[node2][node1] = 1
     
-    values_mat = np.unique(cre_edge_matrix_input.ravel())
-    color_dict = {-1: 'lightblue',
-              0: 'darkslateblue',
-              1: 'yellow'}
-    colors=[color_dict[val] for val in list(values_mat)]
-    im = plt.imshow(cre_edge_matrix_input,interpolation="none",cmap=ListedColormap(colors))
-  
-    colors = [ im.cmap(im.norm(value)) for value in values_mat]
-    patches = [ mpatches.Patch(color=colors[i], label="Level {l}".format(l=values_mat[i]) ) for i in range(len(values_mat)) ]
-    plt.legend(handles=patches, bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0. )
-    plt.show()
-
     return cre_edge_matrix_input
 
 
@@ -115,11 +97,15 @@ def generate_random_subgraph( cre_edge_matrix_input, cre_attributes, cre_DNA, cr
     neighbor_size = neighbor_inp
     sample_size = random_size + neighbor_size
 
+
     edge_list_node1 = []
     edge_list_node2 = []
+
     center = random.randint(radius, cre_number_of_nodes - radius)
 
     output_expected = [-1] * (sample_size ** 2)
+
+    
 
     node_set1 = random.sample(range(center - radius, center + radius), k = neighbor_size)
     node_set2 = random.sample(list(set(range(cre_number_of_nodes)) - set(node_set1)), k = neighbor_size)
@@ -140,8 +126,8 @@ def generate_random_subgraph( cre_edge_matrix_input, cre_attributes, cre_DNA, cr
                 edge_list_node1.extend([node1, node2])
                 edge_list_node2.extend([node2, node1])
 
-        output_expected[node1 * sample_size + node2] = cre_edge_matrix_input[node_set[node1]][node_set[node2]]
-        output_expected[node2 * sample_size + node1] = cre_edge_matrix_input[node_set[node2]][node_set[node1]]
+            output_expected[node1 * sample_size + node2] = cre_edge_matrix_input[node_set[node1]][node_set[node2]]
+            output_expected[node2 * sample_size + node1] = cre_edge_matrix_input[node_set[node2]][node_set[node1]]
     
     for indx_node in range(sample_size):
         attribute_dataset.append(cre_attributes[node_set[indx_node]].tolist() + cre_DNA[node_set[indx_node]].tolist())
@@ -158,8 +144,6 @@ def generate_subgraphs( cre_edge_matrix_input,cre_attributes, cre_DNA,cre_number
 
   for i in tqdm(range(number_samples)):
     new_subgraph_dataset = generate_random_subgraph(cre_edge_matrix_input, cre_attributes, cre_DNA,cre_number_of_nodes ,radius_inp, rand_inp, neighbor_inp)
-   # print("new_subgraoh ", new_subgraph_dataset.y.sum())
-    #print("new_subgraoh ", len(new_subgraph_dataset.y))
     dataset_subgraphs.append(new_subgraph_dataset)
   
 #   
