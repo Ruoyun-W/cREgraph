@@ -1,3 +1,4 @@
 cRE/Dataset/**
 *.pth
 *.pyc
+*.pt
