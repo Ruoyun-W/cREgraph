@@ -16,6 +16,9 @@ import json
 from itertools import combinations
 from torch_geometric.loader import DataLoader
 from torch_geometric.nn import DataParallel, GCNConv
+import torch.cuda.amp as amp
+
+
 
 from torch.utils.data.distributed import DistributedSampler
 import torch.distributed as dist
@@ -38,7 +41,7 @@ dataset_val = torch.load(directory_inp + f"{suffix}_val.pt")
 feature_num = 10
 
 
-batchSize = 13
+batchSize = 15
 chunksize = 200        
 samplesize = 100 
 sample_stride = 50
@@ -89,65 +92,66 @@ class network(torch.nn.Module):
         self.transformer_layers = [nn.TransformerEncoderLayer(d_model = gcnOutputsize, nhead = 12, batch_first = True).to(device) for i in range(12)]
 
     def forward(self, data, batchSize = batchSize):
+        
+        with amp.autocast(dtype=torch.float16):
 
-        x, edge_index,edge_attr = data.x, data.edge_index,data.edge_attr
+            x, edge_index,edge_attr = data.x, data.edge_index,data.edge_attr
 
-        dummy_elements = np.zeros((x.shape[0], gcnInputsize - x.shape[1]))
-        dummy_elements = torch.tensor(dummy_elements).to(x.device)
+        
+
+            x = self.conv1(x = x, edge_index = edge_index, edge_weight = edge_attr)
+
+            x = F.relu(x, inplace = False)
+            x = self.conv1_2(x, edge_index, edge_attr)
+            x = F.relu(x, inplace = False)
+            x = self.conv2(x, edge_index, edge_attr)
+
+            x = x.view(batchSize, 200, -1)
 
 
-    
-        x = torch.cat((x, dummy_elements), dim = 1)
+            for layers in self.transformer_layers:
+                x1 = layers(x)            
+                x1 = x1.permute(0, 2, 1).contiguous()
+                x1 = x1.float()
+                x1_bn = self.bn(x1.clone())
+                x1_bn = x1.permute(0, 2, 1).contiguous()
+                x1_bn = F.relu(x1_bn)
+                x = x1_bn + x
+            x = F.dropout(x, training=self.training, inplace = False)
+            origs = x.unsqueeze(2).expand(x.size(0), x.size(1), x.size(1), -1).reshape(x.size(0), x.size(1) * x.size(1), -1)
+            dests = x.unsqueeze(1).expand(x.size(0), x.size(1), x.size(1), -1).reshape(x.size(0), x.size(1) * x.size(1), -1)
+            embs = torch.cat([origs, dests], dim = 2)
 
+            embs = embs.permute(0, 2, 1)
+            x = F.relu(self.transform_conv1(embs), inplace = False)
+            x = F.relu(self.transform_conv2(x), inplace = False)
+            x = F.relu(self.transform_conv3(x), inplace = False)
+            x = F.relu(self.transform_conv4(x), inplace = False)
+            x = F.relu(self.transform_conv5(x), inplace = False)
+            x = F.relu(self.transform_conv6(x), inplace = False)
+            x = F.relu(self.transform_conv7(x), inplace = False)
+            x = self.transform_conv8(x)
 
-        x = self.conv1(x = x.float(), edge_index = edge_index, edge_weight = edge_attr)
+            x = x.permute(0, 2, 1)
 
-        x = F.relu(x)
-        x = self.conv1_2(x, edge_index, edge_attr)
-        x = F.relu(x)
-        x = self.conv2(x, edge_index, edge_attr)
-
-        x = x.view(batchSize, 200, -1)
-        for layers in self.transformer_layers:
-            x1 = layers(x)            
-            x1 = x1.permute(0, 2, 1).contiguous()
-            x1 = self.bn(x1)
-            x1 = x1.permute(0, 2, 1).contiguous()
-            x1 = F.relu(x1)
-            x += x1
-        x = F.dropout(x, training=self.training)
-        origs = x.unsqueeze(2).expand(x.size(0), x.size(1), x.size(1), -1).reshape(x.size(0), x.size(1) * x.size(1), -1)
-        dests = x.unsqueeze(1).expand(x.size(0), x.size(1), x.size(1), -1).reshape(x.size(0), x.size(1) * x.size(1), -1)
-        embs = torch.cat([origs, dests], dim = 2)
-
-        embs = embs.permute(0, 2, 1)
-        x = F.relu(self.transform_conv1(embs))
-        x = F.relu(self.transform_conv2(x))
-        x = F.relu(self.transform_conv3(x))
-        x = F.relu(self.transform_conv4(x))
-        x = F.relu(self.transform_conv5(x))
-        x = F.relu(self.transform_conv6(x))
-        x = F.relu(self.transform_conv7(x))
-        x = self.transform_conv8(x)
-
-        x = x.permute(0, 2, 1)
-
-        return x.view(-1)
+            return x.view(-1)
+        
 
 
 
 
 def main(rank, world_size):
 
-    torch.backends.cudnn.benchmark = True
-    scaler = GradScaler()
+    
+    scaler = amp.GradScaler()   
 
     dist.init_process_group(backend='nccl')
 
     device = torch.device('cuda', rank) 
+    torch.autograd.set_detect_anomaly(True)
     model = network(feature_num,gcnInputsize,gcnHiddensize,gcnOutputsize,batchSize)
     model.to(device)
-    model = nn.parallel.DistributedDataParallel(model, device_ids=[rank])
+    model = nn.parallel.DistributedDataParallel(model, device_ids=[rank], find_unused_parameters=True)
 
 
     criterion = torch.nn.MSELoss()
@@ -175,34 +179,56 @@ def main(rank, world_size):
         trainloss = 0.
         for data in tqdm(train_loader):
             data = data.to(rank)
+            x = data.x
+            dummy_elements = np.zeros((x.shape[0], gcnInputsize - x.shape[1]))
+            dummy_elements = torch.tensor(dummy_elements).to(x.device)
+        
+            x = torch.cat((x, dummy_elements), dim = 1)
+            x = x.float()
+            data.y = data.y.float()
+            # data.edge_attr = data.edge_attr.float()
+            
+            data.x = x
             if data.x.size(0) < 2800:
                 break
-            with autocast():
+
+            with amp.autocast(dtype=torch.float16):
+                
                 pred_y = model(data)
                 mask = ~torch.isnan(data.y.view(-1))
-
                 non_nan_indexes = torch.nonzero(mask).squeeze()
                 labels = torch.index_select(data.y.view(-1), 0, non_nan_indexes)
                 pred_y = torch.index_select(pred_y, 0, non_nan_indexes)
-                loss = loss + criterion(pred_y, labels.float())
-                trainloss += loss.item()
-                count = count + 1
-                if(count == 2):
-                    scaler.scale(loss).backward()
-                    scaler.step(optimizer)
-                    scaler.update()
-                    optimizer.zero_grad()
-                    loss = 0.0
-                    klloss = 0.
-                    count = 0 
+                loss = loss + criterion(pred_y, labels)
+
+            trainloss += loss.item()
+            count = count + 1
+
+            if(count == 2):
+                
+                scaler.scale(loss).backward()
+                scaler.step(optimizer)
+
+                scaler.update()
+
+                loss = 0.0
+                klloss = 0.
+                count = 0 
 
                 del(labels)
                 del(non_nan_indexes)
-        if(loss!=0):
+
+        if(loss != 0):
+
+            
             scaler.scale(loss).backward()
             scaler.step(optimizer)
+
             scaler.update()
             optimizer.zero_grad()
+            loss = 0.0
+            klloss = 0.
+            count = 0 
         print('epoch {}, Train loss {}'.format(epoch, trainloss / len(train_loader)))
 
         model.eval()
@@ -211,11 +237,23 @@ def main(rank, world_size):
         ypred = []
         pearsoncorr = 0
         spearmancorr = 0
+        
         if epoch % 5 == 0:
             with torch.no_grad():
                 for data in tqdm(val_loader):
                     data = data.to(device)
-                    with autocast():
+                    x = data.x
+                    dummy_elements = np.zeros((x.shape[0], gcnInputsize - x.shape[1]))
+                    dummy_elements = torch.tensor(dummy_elements).to(x.device)
+
+                    x = torch.cat((x, dummy_elements), dim = 1)
+                    x = x.float()
+                    data.y = data.y.float()
+                    data.x = x
+
+                    with amp.autocast(dtype=torch.float16):
+                       
+
                         pred_y = model(data,batchSize = 1)
                         mask = ~torch.isnan(data.y.view(-1))
                         non_nan_indexes = torch.nonzero(mask).squeeze()
