@@ -1,0 +1,26 @@
+2023-09-24 10:12:51 - INFO - Added key: store_based_barrier_key:1 to store for rank: 0
+2023-09-24 10:12:51 - INFO - Rank 0: Completed store-based barrier for key:store_based_barrier_key:1 with 1 nodes.
+2023-09-24 10:12:51 - INFO - Added key: store_based_barrier_key:1 to store for rank: 0
+2023-09-24 10:12:51 - INFO - Added key: store_based_barrier_key:1 to store for rank: 0
+2023-09-24 10:13:01 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:13:01 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:13:11 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:13:11 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:13:21 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:13:21 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:13:31 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:13:31 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:13:41 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:13:41 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:13:51 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:13:51 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:14:01 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:14:01 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:14:11 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:14:11 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:14:21 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:14:21 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:14:31 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:14:31 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:14:41 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:14:41 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)

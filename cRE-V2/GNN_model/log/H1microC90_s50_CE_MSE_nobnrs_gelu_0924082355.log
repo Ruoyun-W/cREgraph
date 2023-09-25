@@ -1,0 +1,5 @@
+2023-09-24 08:23:58 - INFO - Added key: store_based_barrier_key:1 to store for rank: 0
+2023-09-24 08:23:58 - INFO - Rank 0: Completed store-based barrier for key:store_based_barrier_key:1 with 1 nodes.
+2023-09-24 08:23:58 - INFO - Added key: store_based_barrier_key:1 to store for rank: 0
+2023-09-24 08:23:58 - INFO - Added key: store_based_barrier_key:1 to store for rank: 0
+2023-09-24 08:23:58 - INFO - Added key: store_based_barrier_key:1 to store for rank: 0

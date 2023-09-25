@@ -1,0 +1,8 @@
+2023-09-24 10:26:57 - INFO - Added key: store_based_barrier_key:1 to store for rank: 0
+2023-09-24 10:26:57 - INFO - Rank 0: Completed store-based barrier for key:store_based_barrier_key:1 with 1 nodes.
+2023-09-24 10:26:57 - INFO - Added key: store_based_barrier_key:1 to store for rank: 0
+2023-09-24 10:26:57 - INFO - Added key: store_based_barrier_key:1 to store for rank: 0
+2023-09-24 10:26:57 - INFO - Added key: store_based_barrier_key:1 to store for rank: 0
+2023-09-24 10:27:07 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:27:07 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:27:07 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)

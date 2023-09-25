@@ -1,0 +1,12 @@
+2023-09-24 10:27:35 - INFO - Added key: store_based_barrier_key:1 to store for rank: 0
+2023-09-24 10:27:45 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:27:55 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:28:05 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:28:15 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:28:25 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:28:35 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:28:45 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:28:55 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:29:05 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:29:15 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
+2023-09-24 10:29:25 - INFO - Waiting in store based barrier to initialize process group for rank: 0, key: store_based_barrier_key:1 (world_size=1, worker_count=4, timeout=0:30:00)
